@@ -8,23 +8,20 @@ interface SidebarProps {
   role?: "USER" | "ADMIN";
 }
 
-// แยกส่วนเนื้อหาหลักของ Nav มาไว้ข้างในเพื่อใช้งาน useSearchParams
+// 1. แยกตัว Nav Content
 const SidebarNav: React.FC<SidebarProps> = ({ role = "USER" }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
 
-  // ดึง URL เต็ม เช่น /courses หรือ /courses?cat=english
-  const currentUrl = searchParams.toString()
-    ? `${pathname}?${searchParams.toString()}`
-    : pathname;
+  // ดึง Query String มารวมกับ Pathname
+  const searchString = searchParams?.toString();
+  const currentUrl = searchString ? `${pathname}?${searchString}` : pathname;
 
-  // ปิด Sidebar บน mobile อัตโนมัติเมื่อมีการเปลี่ยนหน้า
   useEffect(() => {
     setIsOpen(false);
   }, [pathname, searchParams]);
 
-  // ฟังก์ชันเช็ค active โดยเปรียบเทียบกับ currentUrl เต็มๆ
   const isActive = (path: string) => currentUrl === path;
 
   const navClass = (path: string) =>
@@ -105,7 +102,7 @@ const SidebarNav: React.FC<SidebarProps> = ({ role = "USER" }) => {
 
   return (
     <>
-      {/* 🟢 Mobile Hamburger Button */}
+      {/* Mobile Hamburger Button */}
       <div className="md:hidden fixed bottom-5 right-5 z-50">
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -144,7 +141,7 @@ const SidebarNav: React.FC<SidebarProps> = ({ role = "USER" }) => {
         </button>
       </div>
 
-      {/* 🟢 Mobile Backdrop */}
+      {/* Mobile Backdrop */}
       {isOpen && (
         <div
           className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm md:hidden transition-opacity"
@@ -152,7 +149,7 @@ const SidebarNav: React.FC<SidebarProps> = ({ role = "USER" }) => {
         />
       )}
 
-      {/* 🟢 Mobile Drawer Sidebar */}
+      {/* Mobile Drawer Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-white p-4 border-r border-rose-100 shadow-xl transition-transform duration-300 ease-in-out md:hidden overflow-y-auto ${
           isOpen ? "translate-x-0" : "-translate-x-full"
@@ -170,7 +167,7 @@ const SidebarNav: React.FC<SidebarProps> = ({ role = "USER" }) => {
         {SidebarContent}
       </aside>
 
-      {/* 🟢 Desktop Sidebar */}
+      {/* Desktop Sidebar */}
       <aside className="w-64 shrink-0 border-r border-rose-100 bg-white p-4 hidden md:block min-h-[calc(100vh-4rem)]">
         {SidebarContent}
       </aside>
@@ -178,15 +175,15 @@ const SidebarNav: React.FC<SidebarProps> = ({ role = "USER" }) => {
   );
 };
 
-// ครอบด้วย Suspense ตามข้อกำหนดของ Next.js เมื่อใช้ useSearchParams
-export const Sidebar: React.FC<SidebarProps> = (props) => {
+// 2. Export หลักพร้อมห่อด้วย Suspense
+export const Sidebar: React.FC<SidebarProps> = ({ role = "USER" }) => {
   return (
     <Suspense
       fallback={
         <aside className="w-64 shrink-0 hidden md:block border-r border-rose-100 bg-white p-4 min-h-[calc(100vh-4rem)]" />
       }
     >
-      <SidebarNav {...props} />
+      <SidebarNav role={role} />
     </Suspense>
   );
 };

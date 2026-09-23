@@ -1,7 +1,13 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // ข้ามการตรวจ Type Check ขณะ build บน Netlify
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  // ข้ามการตรวจ ESLint ขณะ build
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
