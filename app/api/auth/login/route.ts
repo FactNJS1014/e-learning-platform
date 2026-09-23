@@ -5,7 +5,14 @@ import { loginSchema } from "@/lib/validation";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body) {
+      return NextResponse.json(
+        { success: false, message: "Invalid JSON body" },
+        { status: 400 },
+      );
+    }
+
     const validated = loginSchema.parse(body);
 
     const user = await prisma.user.findUnique({
@@ -19,7 +26,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const isValid = await verifyPassword(validated.password, user.passwordHash);
+    // ⚠️ เช็คฟิลด์ password ตรงนี้ (เปลี่ยนเป็น user.password ถ้า schema ใช้ชื่อ password)
+    const dbPassword = (user as any).passwordHash || (user as any).password;
+
+    const isValid = await verifyPassword(validated.password, dbPassword);
     if (!isValid) {
       return NextResponse.json(
         { success: false, message: "Invalid email or password." },
@@ -56,10 +66,12 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error: any) {
+    // 🔴 บังคับส่ง Error Message ออกไปแสดงบน Response เพื่อให้เราเห็นสาเหตุ
     return NextResponse.json(
       {
         success: false,
-        message: error.errors?.[0]?.message || "Authentication failed",
+        debug_error: error?.message || String(error),
+        stack: error?.stack,
       },
       { status: 400 },
     );
