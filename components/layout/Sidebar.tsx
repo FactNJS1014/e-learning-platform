@@ -1,23 +1,31 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 interface SidebarProps {
   role?: "USER" | "ADMIN";
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ role = "USER" }) => {
+// แยกส่วนเนื้อหาหลักของ Nav มาไว้ข้างในเพื่อใช้งาน useSearchParams
+const SidebarNav: React.FC<SidebarProps> = ({ role = "USER" }) => {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
 
-  // ปิด Sidebar บน mobile อัตโนมัติ เมื่อมีการเปลี่ยนหน้า (pathname change)
+  // ดึง URL เต็ม เช่น /courses หรือ /courses?cat=english
+  const currentUrl = searchParams.toString()
+    ? `${pathname}?${searchParams.toString()}`
+    : pathname;
+
+  // ปิด Sidebar บน mobile อัตโนมัติเมื่อมีการเปลี่ยนหน้า
   useEffect(() => {
     setIsOpen(false);
-  }, [pathname]);
+  }, [pathname, searchParams]);
 
-  const isActive = (path: string) => pathname === path;
+  // ฟังก์ชันเช็ค active โดยเปรียบเทียบกับ currentUrl เต็มๆ
+  const isActive = (path: string) => currentUrl === path;
 
   const navClass = (path: string) =>
     `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
@@ -97,7 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = "USER" }) => {
 
   return (
     <>
-      {/* 🟢 Mobile Hamburger Button (แสดงเฉพาะจอมือถือ) */}
+      {/* 🟢 Mobile Hamburger Button */}
       <div className="md:hidden fixed bottom-5 right-5 z-50">
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -136,7 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = "USER" }) => {
         </button>
       </div>
 
-      {/* 🟢 Mobile Backdrop / Overlay (พื้นหลังสีดำใสเมื่อเปิด Sidebar บนมือถือ) */}
+      {/* 🟢 Mobile Backdrop */}
       {isOpen && (
         <div
           className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm md:hidden transition-opacity"
@@ -144,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = "USER" }) => {
         />
       )}
 
-      {/* 🟢 Mobile Drawer Sidebar (Slide in จากซ้าย) */}
+      {/* 🟢 Mobile Drawer Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-white p-4 border-r border-rose-100 shadow-xl transition-transform duration-300 ease-in-out md:hidden overflow-y-auto ${
           isOpen ? "translate-x-0" : "-translate-x-full"
@@ -162,10 +170,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = "USER" }) => {
         {SidebarContent}
       </aside>
 
-      {/* 🟢 Desktop Sidebar (แสดงผลปกติเฉพาะจอ md ขึ้นไป) */}
+      {/* 🟢 Desktop Sidebar */}
       <aside className="w-64 shrink-0 border-r border-rose-100 bg-white p-4 hidden md:block min-h-[calc(100vh-4rem)]">
         {SidebarContent}
       </aside>
     </>
+  );
+};
+
+// ครอบด้วย Suspense ตามข้อกำหนดของ Next.js เมื่อใช้ useSearchParams
+export const Sidebar: React.FC<SidebarProps> = (props) => {
+  return (
+    <Suspense
+      fallback={
+        <aside className="w-64 shrink-0 hidden md:block border-r border-rose-100 bg-white p-4 min-h-[calc(100vh-4rem)]" />
+      }
+    >
+      <SidebarNav {...props} />
+    </Suspense>
   );
 };
