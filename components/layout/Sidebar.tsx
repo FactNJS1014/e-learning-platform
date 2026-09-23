@@ -51,7 +51,7 @@ const SidebarNav: React.FC<SidebarProps> = ({ role = "USER" }) => {
             href="/courses?cat=english"
             className={navClass("/courses?cat=english")}
           >
-            🇬🇧 English
+            🔠 English
           </Link>
           <Link
             href="/courses?cat=backend"
@@ -59,9 +59,15 @@ const SidebarNav: React.FC<SidebarProps> = ({ role = "USER" }) => {
           >
             🟢 Node.js & Nest.js
           </Link>
-          <Link href="/my-learning" className={navClass("/my-learning")}>
+          {/* <Link
+            href="/courses?cat=laravel"
+            className={navClass("/courses?cat=laravel")}
+          >
+            🟢 Laravel
+          </Link> */}
+          {/* <Link href="/my-learning" className={navClass("/my-learning")}>
             🎓 My Learning
-          </Link>
+          </Link> */}
         </div>
       </div>
 
